@@ -81,6 +81,19 @@ def checkout():
 def profile():
     orders = Order.query.all()
     return render_template('profile.html', orders=orders)
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        price = int(request.form.get('price'))
+        description = request.form.get('description')
+        
+        new_product = Product(name=name, price=price, description=description)
+        db.session.add(new_product)
+        db.session.commit()
+        return redirect('/admin')
+        
+    return render_template('add_product.html')
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
