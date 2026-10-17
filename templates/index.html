@@ -31,7 +31,7 @@
                         <h5 class="card-title">{{ product.name }}</h5>
                         <p class="card-text">{{ product.description }}</p>
                         <h4 class="text-success">{{ product.price }} руб.</h4>
-                        <button class="btn btn-primary mt-2">В корзину</button>
+                        <a href="/add_to_cart/{{ product.id }}" class="btn btn-primary mt-2">В корзину</a>
                     </div>
                 </div>
             </div>

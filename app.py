@@ -1,7 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session, redirect
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.secret_key = 'super_secret_key_123'
 # Настройка базы данных SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shop.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -22,8 +23,31 @@ def home():
 
 @app.route('/catalog')
 def catalog():
-    return "<h1>Страница каталога в разработке</h1>"
+    products = Product.query.all()
+    return render_template('catalog.html', products=products)
+@app.route('/add_to_cart/<int:product_id>')
+def add_to_cart(product_id):
+    # Инициализируем корзину в сессии, если её нет
+    if 'cart' not in session:
+        session['cart'] = []
+    
+    # Добавляем ID товара в корзину
+    cart = session['cart']
+    cart.append(product_id)
+    session['cart'] = cart
+    
+    return redirect('/cart')
 
+@app.route('/cart')
+def cart():
+    # Получаем список ID товаров из сессии
+    cart_ids = session.get('cart', [])
+    # Находим эти товары в базе данных
+    products = Product.query.filter(Product.id.in_(cart_ids)).all()
+    # Считаем общую сумму
+    total = sum(p.price for p in products)
+    
+    return render_template('cart.html', products=products, total=total)
 # Этот блок создаст базу данных и добавит товары при первом запуске
 if __name__ == '__main__':
     with app.app_context():
