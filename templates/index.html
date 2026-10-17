@@ -6,7 +6,18 @@
 </head>
 <body>
     <h1>Добро пожаловать в наш магазин!</h1>
-    <p>Здесь скоро появятся товары.</p>
     <a href="/">Главная</a> | <a href="/catalog">Каталог</a>
+    
+    <h2>Популярные товары:</h2>
+    <ul>
+        {% for product in products %}
+            <li>
+                <strong>{{ product.name }}</strong> — {{ product.price }} руб.
+                <p>{{ product.description }}</p>
+            </li>
+        {% else %}
+            <li>Товаров пока нет.</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
