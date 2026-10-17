@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, redirect
+from flask import Flask, render_template, session, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -48,7 +48,18 @@ def cart():
     total = sum(p.price for p in products)
     
     return render_template('cart.html', products=products, total=total)
-# Этот блок создаст базу данных и добавит товары при первом запуске
+@app.route('/checkout', methods=['GET', 'POST'])
+def checkout():
+    if request.method == 'POST':
+        # При успешном заказе очищаем корзину
+        session.pop('cart', None)
+        return "<h1>Спасибо за заказ! Мы свяжемся с вами.</h1><a href='/'>На главную</a>"
+    
+    # Если это GET-запрос, показываем форму
+    cart_ids = session.get('cart', [])
+    products = Product.query.filter(Product.id.in_(cart_ids)).all()
+    total = sum(p.price for p in products)
+    return render_template('checkout.html', total=total)
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
