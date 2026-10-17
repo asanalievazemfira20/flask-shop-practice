@@ -14,7 +14,12 @@ class Product(db.Model):
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Integer, nullable=False)
     description = db.Column(db.Text, nullable=True)
-
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_name = db.Column(db.String(100), nullable=False)
+    address = db.Column(db.String(200), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    total = db.Column(db.Integer, nullable=False)
 @app.route('/')
 def home():
     # Получаем все товары из базы
@@ -49,17 +54,33 @@ def cart():
     
     return render_template('cart.html', products=products, total=total)
 @app.route('/checkout', methods=['GET', 'POST'])
+@app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     if request.method == 'POST':
-        # При успешном заказе очищаем корзину
+        name = request.form.get('name')
+        address = request.form.get('address')
+        phone = request.form.get('phone')
+        
+        cart_ids = session.get('cart', [])
+        products = Product.query.filter(Product.id.in_(cart_ids)).all()
+        total = sum(p.price for p in products)
+        
+        # Сохраняем заказ в базе
+        new_order = Order(user_name=name, address=address, phone=phone, total=total)
+        db.session.add(new_order)
+        db.session.commit()
+        
         session.pop('cart', None)
         return "<h1>Спасибо за заказ! Мы свяжемся с вами.</h1><a href='/'>На главную</a>"
     
-    # Если это GET-запрос, показываем форму
     cart_ids = session.get('cart', [])
     products = Product.query.filter(Product.id.in_(cart_ids)).all()
     total = sum(p.price for p in products)
     return render_template('checkout.html', total=total)
+@app.route('/profile')
+def profile():
+    orders = Order.query.all()
+    return render_template('profile.html', orders=orders)
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
